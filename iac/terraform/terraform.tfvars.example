@@ -1,0 +1,78 @@
+# terraform.tfvars.example
+#
+# Copy this file to terraform.tfvars and fill in your real values.
+# terraform.tfvars is gitignored — never commit it (contains secrets).
+#
+# HOW TFVARS WORKS:
+# Terraform automatically loads terraform.tfvars at plan/apply time.
+# Each key here must match a variable declared in variables.tf.
+# You can override any value by passing -var="key=value" on the CLI.
+
+# ─── PROXMOX CONNECTION ───────────────────────────────────────────────────────
+
+# Full URL to the Proxmox API. Always ends with /api2/json.
+proxmox_endpoint = "https://192.168.1.10:8006/api2/json"
+
+# API token in the format: <user>@<realm>!<token-name>=<uuid>
+# Create it in Proxmox UI → Datacenter → Permissions → API Tokens.
+proxmox_api_token = "terraform@pve!tf-token=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Skip TLS certificate verification.
+# Set to true if Proxmox uses a self-signed certificate (common on homelab).
+proxmox_insecure = true
+
+# ─── PROXMOX NODE ─────────────────────────────────────────────────────────────
+
+# Name of the Proxmox node where resources will be created.
+# Check your node name in Proxmox UI → Datacenter → <node name>.
+proxmox_node = "pve"
+
+# ─── VM — GITLAB SERVER ───────────────────────────────────────────────────────
+
+# Unique numeric ID for the VM in Proxmox (100–999999).
+# Must not conflict with existing VMs or containers.
+gitlab_vm_id = 101
+
+# Hostname assigned to the VM (also used as the Proxmox VM name).
+gitlab_vm_name = "gitlab-server"
+
+# Name of the VM template to clone from.
+# The template must already exist on the node (e.g. an Ubuntu 24.04 cloud image).
+gitlab_vm_template = "ubuntu-24.04-cloud"
+
+# Number of vCPU cores. GitLab CE recommends at least 4 for comfortable use.
+gitlab_vm_cores = 4
+
+# RAM in megabytes. GitLab CE recommends at least 4096 MB (4 GB).
+gitlab_vm_memory = 8192
+
+# Root disk size. GitLab data (repos, registry, artifacts) grows over time.
+gitlab_vm_disk_size = "60G"
+
+# Proxmox storage pool where the VM disk will be created.
+# Common names: local-lvm, local-zfs, ceph-pool.
+gitlab_vm_storage = "local-lvm"
+
+# ─── NETWORK ──────────────────────────────────────────────────────────────────
+
+# Static IP address assigned to the VM via cloud-init (CIDR notation).
+gitlab_vm_ip = "192.168.1.101/24"
+
+# Default gateway for the VM.
+gitlab_vm_gateway = "192.168.1.1"
+
+# DNS server the VM will use for name resolution.
+gitlab_vm_dns = "1.1.1.1"
+
+# Linux bridge on the Proxmox node to attach the VM network interface to.
+# Default bridge created by Proxmox is vmbr0.
+gitlab_vm_bridge = "vmbr0"
+
+# ─── CLOUD-INIT / ACCESS ──────────────────────────────────────────────────────
+
+# Default OS user created by cloud-init inside the VM.
+gitlab_vm_user = "ubuntu"
+
+# SSH public key injected into the VM by cloud-init.
+# Paste the contents of your ~/.ssh/id_rsa.pub or ~/.ssh/id_ed25519.pub here.
+gitlab_vm_ssh_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... daniel@workstation"
