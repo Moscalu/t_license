@@ -37,6 +37,18 @@ variable "network_bridge" {
   default     = "vnet1"
 }
 
+variable "ipv4_address" {
+  description = "Static IPv4 address for the container in CIDR notation (e.g. 192.168.1.101/24)"
+  type        = string
+  default     = "dhcp"
+}
+
+variable "ipv4_gateway" {
+  description = "Default gateway for the container"
+  type        = string
+  default     = null
+}
+
 variable "ssh_public_key" {
   description = "SSH public key to inject into the container for access"
   type        = string

@@ -5,6 +5,13 @@ resource "proxmox_virtual_environment_container" "this" {
   initialization {
     hostname = var.hostname
 
+    ip_config {
+      ipv4 {
+        address = var.ipv4_address
+        gateway = var.ipv4_gateway
+      }
+    }
+
     user_account {
       keys = [file(var.ssh_public_key)]
     }
