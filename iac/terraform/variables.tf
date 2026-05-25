@@ -14,7 +14,7 @@ variable "proxmox_api_token" {
 variable "proxmox_insecure" {
   description = "Skip TLS certificate verification (set true for self-signed certs)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 # ─── PROXMOX NODE ─────────────────────────────────────────────────────────────
@@ -100,6 +100,12 @@ variable "gitlab_vm_user" {
 
 variable "gitlab_vm_ssh_public_key" {
   description = "SSH public key injected into the container for the default user"
+  type        = string
+  sensitive   = true
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key to inject into the container for access"
   type        = string
   sensitive   = true
 }
