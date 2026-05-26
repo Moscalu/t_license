@@ -1,0 +1,27 @@
+# group_vars/runners.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables defined here are ONLY available to hosts in the "runners" group
+# (runner-test and runner-prod as defined in inventory/hosts.yml).
+# Ansible loads this file automatically for those hosts — no import needed.
+
+# URL of your GitLab instance — runners use this to register and receive jobs.
+gitlab_url: "https://gitlab.homelab.local"
+
+# Executor type. "docker" means each CI job runs inside a fresh Docker container.
+# Requires nesting=true on the LXC container (set in Terraform module call).
+gitlab_runner_executor: docker
+
+# Default Docker image used for CI jobs when the pipeline doesn't specify one.
+gitlab_runner_default_image: "ubuntu:24.04"
+
+# ─── REGISTRATION TOKEN ───────────────────────────────────────────────────────
+# The token used to register the runner with GitLab.
+# Find it in GitLab UI: Admin Area → CI/CD → Runners → New instance runner.
+#
+# ⚠️  DO NOT hardcode the real token here — this file is committed to git.
+# Pass it at runtime instead:
+#
+#   ansible-playbook -i inventory/hosts.yml playbooks/05_runners.yml \
+#     --extra-vars "gitlab_registration_token=glrt-xxxxxxxxxxxx"
+
+gitlab_registration_token: ""   # ← leave empty, pass via --extra-vars at runtime

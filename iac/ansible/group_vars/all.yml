@@ -1,0 +1,46 @@
+# group_vars/all.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Variables defined here are automatically available to EVERY host and EVERY
+# playbook. No need to import or reference this file — Ansible loads it
+# automatically based on its filename and location.
+#
+# Use this file for things that are true for all your servers:
+# connection settings, shared paths, domain names, service map, etc.
+
+# ─── SSH CONNECTION ───────────────────────────────────────────────────────────
+
+# The user Ansible will SSH into on each host.
+# All containers are provisioned with root SSH key injection via Terraform.
+ansible_user: root
+
+# Path to your private SSH key (same key injected into containers via Terraform).
+ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+
+# Skip host key verification — acceptable for a private homelab.
+ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+
+# ─── HOMELAB DOMAIN ───────────────────────────────────────────────────────────
+
+homelab_domain: homelab.local
+
+# ─── SERVICE MAP ──────────────────────────────────────────────────────────────
+# Used by the common role to populate /etc/hosts on every container.
+# This lets containers resolve each other by hostname without a DNS server.
+# Format: { ip: "x.x.x.x", hostname: "service.homelab.local" }
+
+homelab_services:
+  - { ip: "10.10.1.201", hostname: "traefik.homelab.local" }
+  - { ip: "10.10.1.202", hostname: "gitlab.homelab.local" }
+  - { ip: "10.10.1.203", hostname: "sonarqube.homelab.local" }
+  - { ip: "10.10.1.204", hostname: "monitoring.homelab.local" }
+  - { ip: "10.10.1.205", hostname: "runner-test.homelab.local" }
+  - { ip: "10.10.1.206", hostname: "runner-prod.homelab.local" }
+
+# ─── CERTIFICATE ──────────────────────────────────────────────────────────────
+# Path to the mkcert root CA on your LOCAL machine (Ansible control node).
+# The common role copies this to each container and trusts it system-wide.
+# "playbook_dir" is resolved at runtime to the playbooks/ directory.
+ca_cert_local_path: "{{ playbook_dir }}/../../../platform/traefik/certs/rootCA.pem"
+
+# Destination inside each container — must end in .crt for update-ca-certificates.
+ca_cert_remote_path: /usr/local/share/ca-certificates/homelab-root-ca.crt

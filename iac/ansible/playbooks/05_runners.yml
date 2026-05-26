@@ -1,0 +1,27 @@
+# playbooks/05_runners.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Register and configure GitLab Runners.
+# Run LAST — GitLab must be fully up and accessible before runners can register.
+#
+# What it does:
+#   1. Installs Docker CE (runners use Docker executor for CI jobs)
+#   2. Installs gitlab-runner package
+#   3. Registers each runner with your GitLab instance
+#   4. Configures Docker executor with the homelab CA cert trusted
+#
+# ⚠️  Pass the registration token at runtime — never commit it:
+#   ansible-playbook -i inventory/hosts.yml playbooks/05_runners.yml \
+#     --extra-vars "gitlab_registration_token=glrt-xxxxxxxxxxxx"
+#
+#   Get the token from: GitLab UI → Admin Area → CI/CD → Runners → New instance runner
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/05_runners.yml
+
+- name: Deploy GitLab Runners
+  hosts: runners
+  become: true
+
+  roles:
+    - docker
+    - gitlab-runner

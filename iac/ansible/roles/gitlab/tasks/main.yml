@@ -1,0 +1,60 @@
+# roles/gitlab/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy GitLab CE using Docker Compose.
+# Requires: docker role must run first.
+#
+# GitLab configuration lives in gitlab.rb (mounted into the container).
+# When gitlab.rb changes, run "gitlab-ctl reconfigure" inside the container
+# (handled automatically by the handler below when notified).
+#
+# Resource tuning in gitlab.rb (important for limited RAM):
+#   puma['worker_processes'] = 2
+#   sidekiq['concurrency'] = 5
+#   postgresql['shared_buffers'] = '256MB'
+
+---
+
+# ─── 1. CREATE DIRECTORY STRUCTURE ────────────────────────────────────────────
+# - name: Create GitLab directories
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: "0755"
+#   loop:
+#     - /opt/gitlab
+#     - /opt/gitlab/config
+#     - /opt/gitlab/data
+#     - /opt/gitlab/logs
+
+
+# ─── 2. COPY COMPOSE FILE ─────────────────────────────────────────────────────
+# - name: Copy docker-compose.yml
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/gitlab/docker-compose.yml"
+#     dest: /opt/gitlab/docker-compose.yml
+#   notify: Reconfigure GitLab
+
+
+# ─── 3. COPY GITLAB CONFIG ────────────────────────────────────────────────────
+# - name: Copy gitlab.rb
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/gitlab/config/gitlab.rb"
+#     dest: /opt/gitlab/config/gitlab.rb
+#   notify: Reconfigure GitLab
+
+
+# ─── 4. START GITLAB ──────────────────────────────────────────────────────────
+# - name: Start GitLab via Docker Compose
+#   community.docker.docker_compose_v2:
+#     project_src: /opt/gitlab
+#     state: present
+
+
+# ─── 5. WAIT FOR GITLAB TO BE READY ──────────────────────────────────────────
+# GitLab takes 3-5 minutes to initialize on first run (DB migrations, etc.).
+# This task blocks until port 443 responds before the playbook continues.
+# - name: Wait for GitLab HTTPS to be accessible
+#   ansible.builtin.wait_for:
+#     host: localhost
+#     port: 443
+#     timeout: 300   # wait up to 5 minutes

@@ -1,0 +1,20 @@
+# playbooks/00_common.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# RUN THIS FIRST on all containers before any service-specific playbook.
+#
+# What it does (via the "common" role):
+#   - Updates apt package cache
+#   - Installs base packages (curl, wget, ca-certificates, gnupg, python3)
+#   - Copies the mkcert root CA and trusts it system-wide (update-ca-certificates)
+#   - Writes homelab service entries into /etc/hosts on each container
+#   - Sets the system timezone
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/00_common.yml
+
+- name: Bootstrap all containers
+  hosts: all        # ← runs on every host defined in inventory/hosts.yml
+  become: true      # ← execute tasks as root (sudo)
+
+  roles:
+    - common        # ← maps to roles/common/tasks/main.yml

@@ -1,0 +1,21 @@
+# playbooks/01_traefik.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Traefik reverse proxy.
+# Run AFTER 00_common.yml.
+#
+# What it does:
+#   1. Installs Docker CE (via "docker" role)
+#   2. Creates /opt/traefik directory structure
+#   3. Copies compose file, config, and TLS certificates
+#   4. Starts Traefik via docker compose
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/01_traefik.yml
+
+- name: Deploy Traefik
+  hosts: traefik
+  become: true
+
+  roles:
+    - docker        # ← install Docker CE first
+    - traefik       # ← then deploy Traefik

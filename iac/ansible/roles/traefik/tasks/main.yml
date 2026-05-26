@@ -1,0 +1,64 @@
+# roles/traefik/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Traefik reverse proxy using Docker Compose.
+# Requires: docker role must run first.
+#
+# Traefik is the entry point for all HTTPS traffic to *.homelab.local.
+# It reads config from three locations (all mounted via docker-compose.yml):
+#   - Static config:  /opt/traefik/config/traefik.yml  (entrypoints, providers)
+#   - Dynamic config: /opt/traefik/config/dynamic/      (routing rules per service)
+#   - TLS certs:      /opt/traefik/certs/               (wildcard.homelab.local)
+
+---
+
+# ─── 1. CREATE DIRECTORY STRUCTURE ────────────────────────────────────────────
+# - name: Create Traefik directories
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: "0755"
+#   loop:
+#     - /opt/traefik
+#     - /opt/traefik/config
+#     - /opt/traefik/config/dynamic
+#     - /opt/traefik/certs
+
+
+# ─── 2. COPY COMPOSE FILE ─────────────────────────────────────────────────────
+# "playbook_dir" resolves to the playbooks/ directory at runtime.
+# The path below navigates from playbooks/ up to the repo root, then into platform/.
+#
+# - name: Copy docker-compose.yml
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/traefik/docker-compose.yml"
+#     dest: /opt/traefik/docker-compose.yml
+#   notify: Restart Traefik
+
+
+# ─── 3. COPY STATIC CONFIG ────────────────────────────────────────────────────
+# - name: Copy traefik.yml (static config)
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/traefik/config/traefik.yml"
+#     dest: /opt/traefik/config/traefik.yml
+#   notify: Restart Traefik
+
+
+# ─── 4. COPY TLS CERTIFICATES ─────────────────────────────────────────────────
+# - name: Copy wildcard certificate
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/traefik/certs/wildcard.homelab.local.pem"
+#     dest: /opt/traefik/certs/wildcard.homelab.local.pem
+#     mode: "0644"
+#
+# - name: Copy wildcard private key
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/traefik/certs/wildcard.homelab.local-key.pem"
+#     dest: /opt/traefik/certs/wildcard.homelab.local-key.pem
+#     mode: "0600"   # ← private key: readable only by root
+
+
+# ─── 5. START TRAEFIK ─────────────────────────────────────────────────────────
+# - name: Start Traefik via Docker Compose
+#   community.docker.docker_compose_v2:
+#     project_src: /opt/traefik
+#     state: present

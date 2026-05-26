@@ -1,0 +1,52 @@
+# roles/monitoring/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Prometheus + Grafana monitoring stack using Docker Compose.
+# Requires: docker role must run first.
+#
+# Prometheus scrapes metrics from:
+#   - GitLab CE built-in exporter  → gitlab.homelab.local/-/metrics
+#   - GitLab Runners               → runner IPs on port 9252
+#   - Node exporter (optional)     → all hosts on port 9100
+#
+# Grafana uses Prometheus as a data source and provides dashboards.
+# Default Grafana credentials: admin / admin (change on first login).
+
+---
+
+# ─── 1. CREATE DIRECTORY STRUCTURE ────────────────────────────────────────────
+# - name: Create monitoring directories
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: "0755"
+#   loop:
+#     - /opt/monitoring
+#     - /opt/monitoring/prometheus
+#     - /opt/monitoring/grafana
+
+
+# ─── 2. TEMPLATE PROMETHEUS CONFIG ────────────────────────────────────────────
+# prometheus.yml defines what endpoints Prometheus scrapes.
+# Using a template lets you inject host IPs from group_vars/all.yml automatically
+# instead of hardcoding them. Template lives at: roles/monitoring/templates/
+#
+# - name: Template prometheus.yml
+#   ansible.builtin.template:
+#     src: prometheus.yml.j2
+#     dest: /opt/monitoring/prometheus/prometheus.yml
+#   notify: Restart monitoring stack
+
+
+# ─── 3. COPY COMPOSE FILE ─────────────────────────────────────────────────────
+# - name: Copy docker-compose.yml
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../platform/monitoring/docker-compose.yml"
+#     dest: /opt/monitoring/docker-compose.yml
+#   notify: Restart monitoring stack
+
+
+# ─── 4. START STACK ───────────────────────────────────────────────────────────
+# - name: Start monitoring stack via Docker Compose
+#   community.docker.docker_compose_v2:
+#     project_src: /opt/monitoring
+#     state: present

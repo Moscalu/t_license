@@ -1,0 +1,74 @@
+# roles/common/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Tasks run on EVERY host as part of the bootstrap phase.
+# Called by: playbooks/00_common.yml
+#
+# HOW TASKS WORK:
+#   Each "- name:" block is one step. Ansible runs them top-to-bottom.
+#   "ansible.builtin.xxx" are built-in modules — no extra install needed.
+#   Modules are idempotent — running the playbook twice won't break anything.
+#
+# UNCOMMENT each task block when you're ready to implement it.
+# DOCS: https://docs.ansible.com/ansible/latest/collections/ansible/builtin/
+
+---
+
+# ─── 1. SYSTEM UPDATE ─────────────────────────────────────────────────────────
+# Update apt package list so subsequent installs use current package versions.
+#
+# - name: Update apt cache
+#   ansible.builtin.apt:
+#     update_cache: true
+#     cache_valid_time: 3600   # skip if cache was refreshed less than 1h ago
+
+
+# ─── 2. BASE PACKAGES ─────────────────────────────────────────────────────────
+# Packages every container needs regardless of what service it runs.
+#
+# - name: Install base packages
+#   ansible.builtin.apt:
+#     name:
+#       - curl
+#       - wget
+#       - ca-certificates
+#       - gnupg
+#       - python3
+#       - python3-pip
+#     state: present
+
+
+# ─── 3. TRUST HOMELAB ROOT CA ─────────────────────────────────────────────────
+# Copy the mkcert root CA from your laptop to the container, then run
+# update-ca-certificates so ALL system tools (curl, git, docker) trust it.
+# After this, HTTPS calls to *.homelab.local work from inside the container.
+#
+# Variables ca_cert_local_path and ca_cert_remote_path come from group_vars/all.yml.
+#
+# - name: Copy homelab root CA certificate
+#   ansible.builtin.copy:
+#     src: "{{ ca_cert_local_path }}"
+#     dest: "{{ ca_cert_remote_path }}"
+#     mode: "0644"
+#
+# - name: Update CA trust store
+#   ansible.builtin.command: update-ca-certificates
+#   changed_when: true
+
+
+# ─── 4. HOSTS FILE ────────────────────────────────────────────────────────────
+# Write homelab service hostnames into /etc/hosts on every container.
+# This lets containers resolve gitlab.homelab.local, etc. without a DNS server.
+# The template lives at: roles/common/templates/hosts.j2
+# The list of services comes from: group_vars/all.yml → homelab_services
+#
+# - name: Write homelab entries to /etc/hosts
+#   ansible.builtin.template:
+#     src: hosts.j2
+#     dest: /etc/hosts
+#     mode: "0644"
+
+
+# ─── 5. TIMEZONE ──────────────────────────────────────────────────────────────
+# - name: Set timezone
+#   community.general.timezone:
+#     name: Europe/Chisinau   # ← adjust to your timezone

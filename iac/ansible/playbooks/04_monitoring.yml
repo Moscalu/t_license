@@ -1,0 +1,24 @@
+# playbooks/04_monitoring.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy Prometheus + Grafana monitoring stack.
+#
+# What it does:
+#   1. Installs Docker CE
+#   2. Templates prometheus.yml with scrape targets from group_vars/all.yml
+#   3. Deploys Prometheus + Grafana via docker compose
+#
+# Prometheus scrapes:
+#   - GitLab CE built-in exporter  (gitlab.homelab.local/-/metrics)
+#   - GitLab Runners               (port 9252 on each runner)
+#   - Node exporter                (port 9100, if installed via common role)
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/04_monitoring.yml
+
+- name: Deploy Monitoring stack
+  hosts: monitoring
+  become: true
+
+  roles:
+    - docker
+    - monitoring

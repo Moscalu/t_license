@@ -1,0 +1,57 @@
+# roles/gitlab-runner/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Install and register GitLab Runner with Docker executor.
+# Requires: docker role must run first (runner uses Docker for CI jobs).
+#
+# RUNNER TAGS — used in .gitlab-ci.yml to target specific runners:
+#   runner-test:  tag "test"  → used by feature branches and MRs
+#   runner-prod:  tag "prod"  → used only by main/master pipeline
+#
+# The inventory_hostname variable resolves to the current host name
+# (e.g. "runner-test" or "runner-prod") from inventory/hosts.yml.
+#
+# ⚠️  Pass registration token at runtime — never commit it:
+#   ansible-playbook ... --extra-vars "gitlab_registration_token=glrt-xxx"
+
+---
+
+# ─── 1. ADD GITLAB RUNNER REPOSITORY ─────────────────────────────────────────
+# - name: Add GitLab Runner apt repository
+#   ansible.builtin.shell: |
+#     curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | bash
+#   args:
+#     creates: /etc/apt/sources.list.d/runner_gitlab-runner.list
+
+
+# ─── 2. INSTALL GITLAB RUNNER ─────────────────────────────────────────────────
+# - name: Install gitlab-runner package
+#   ansible.builtin.apt:
+#     name: gitlab-runner
+#     state: present
+#     update_cache: true
+
+
+# ─── 3. REGISTER RUNNER WITH GITLAB ──────────────────────────────────────────
+# This connects the runner to your GitLab instance.
+# "creates:" makes this idempotent — skips if runner is already registered.
+#
+# - name: Register GitLab Runner
+#   ansible.builtin.command: >
+#     gitlab-runner register
+#       --non-interactive
+#       --url {{ gitlab_url }}
+#       --token {{ gitlab_registration_token }}
+#       --executor {{ gitlab_runner_executor }}
+#       --docker-image {{ gitlab_runner_default_image }}
+#       --description "{{ inventory_hostname }}"
+#       --tag-list "{{ inventory_hostname }}"
+#   args:
+#     creates: /etc/gitlab-runner/config.toml
+
+
+# ─── 4. ENABLE AND START RUNNER ───────────────────────────────────────────────
+# - name: Enable and start gitlab-runner service
+#   ansible.builtin.systemd:
+#     name: gitlab-runner
+#     enabled: true
+#     state: started

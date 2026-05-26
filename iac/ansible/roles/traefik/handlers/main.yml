@@ -1,0 +1,15 @@
+# roles/traefik/handlers/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW HANDLERS WORK:
+#   Handlers are tasks that only run when explicitly "notified" by another task.
+#   This avoids unnecessary restarts — Traefik only restarts when a file changed.
+#
+#   In any task above, add:   notify: Restart Traefik
+#   Ansible collects all notifications and runs handlers ONCE at end of play.
+#   If a task didn't change anything, its notify is never triggered.
+
+---
+# - name: Restart Traefik
+#   community.docker.docker_compose_v2:
+#     project_src: /opt/traefik
+#     state: restarted

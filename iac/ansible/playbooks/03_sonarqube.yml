@@ -1,0 +1,23 @@
+# playbooks/03_sonarqube.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy SonarQube using Docker Compose.
+#
+# ⚠️  BEFORE RUNNING — set vm.max_map_count on your Proxmox host:
+#   SonarQube uses Elasticsearch internally. Elasticsearch requires the kernel
+#   parameter vm.max_map_count=262144 to be set at the HOST level (Proxmox node),
+#   NOT inside the LXC container. Do this ONCE on your Proxmox node:
+#
+#     echo "vm.max_map_count=262144" >> /etc/sysctl.conf && sysctl -p
+#
+#   Without this, SonarQube will refuse to start with an Elasticsearch error.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/03_sonarqube.yml
+
+- name: Deploy SonarQube
+  hosts: sonarqube
+  become: true
+
+  roles:
+    - docker
+    - sonarqube

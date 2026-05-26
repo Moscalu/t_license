@@ -1,0 +1,59 @@
+# roles/docker/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Install Docker CE on Ubuntu 24.04 using the official Docker apt repository.
+# Called by every service playbook (traefik, gitlab, sonarqube, monitoring, runners).
+#
+# OFFICIAL INSTALL DOCS: https://docs.docker.com/engine/install/ubuntu/
+
+---
+
+# ─── 1. ADD DOCKER APT REPOSITORY ────────────────────────────────────────────
+# Docker is not in Ubuntu's default repos — add the official Docker repo first.
+#
+# - name: Add Docker GPG key
+#   ansible.builtin.apt_key:
+#     url: https://download.docker.com/linux/ubuntu/gpg
+#     state: present
+#
+# - name: Add Docker apt repository
+#   ansible.builtin.apt_repository:
+#     repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu noble stable"
+#     state: present
+
+
+# ─── 2. INSTALL DOCKER ────────────────────────────────────────────────────────
+# - name: Install Docker CE and Compose plugin
+#   ansible.builtin.apt:
+#     name:
+#       - docker-ce
+#       - docker-ce-cli
+#       - containerd.io
+#       - docker-compose-plugin   # enables "docker compose" (v2) command
+#     update_cache: true
+#     state: present
+
+
+# ─── 3. CONFIGURE DOCKER DAEMON ───────────────────────────────────────────────
+# Limit log file size so containers don't fill the disk over time.
+# "notify" triggers the handler in handlers/main.yml only when this task changes.
+#
+# - name: Configure Docker daemon log rotation
+#   ansible.builtin.copy:
+#     dest: /etc/docker/daemon.json
+#     content: |
+#       {
+#         "log-driver": "json-file",
+#         "log-opts": {
+#           "max-size": "10m",
+#           "max-file": "3"
+#         }
+#       }
+#   notify: Restart Docker
+
+
+# ─── 4. ENABLE AND START DOCKER ───────────────────────────────────────────────
+# - name: Enable and start Docker service
+#   ansible.builtin.systemd:
+#     name: docker
+#     enabled: true
+#     state: started

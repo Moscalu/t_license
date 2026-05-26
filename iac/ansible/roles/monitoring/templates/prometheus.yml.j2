@@ -1,0 +1,41 @@
+{# roles/monitoring/templates/prometheus.yml.j2                                #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+{# Jinja2 template for Prometheus scrape configuration.                        #}
+{# Rendered by Ansible and written to /opt/monitoring/prometheus/prometheus.yml#}
+{#                                                                             #}
+{# The IPs below come from group_vars/all.yml → homelab_services list.        #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+
+# global:
+#   scrape_interval: 15s
+#   evaluation_interval: 15s
+
+# scrape_configs:
+
+#   # GitLab CE built-in Prometheus exporter
+#   # Enable in gitlab.rb: prometheus_monitoring['enable'] = true
+#   - job_name: "gitlab"
+#     scheme: https
+#     tls_config:
+#       insecure_skip_verify: false   # CA cert trusted via common role
+#     static_configs:
+#       - targets: ["gitlab.homelab.local"]
+#     metrics_path: /-/metrics
+#     params:
+#       token: ["<your-prometheus-token>"]   # generate in GitLab: User → Access Tokens
+
+#   # GitLab Runners expose metrics on port 9252
+#   - job_name: "gitlab-runners"
+#     static_configs:
+#       - targets:
+#           - "10.10.1.205:9252"   # runner-test
+#           - "10.10.1.206:9252"   # runner-prod
+
+#   # Node exporter (if installed) — system metrics for each container
+#   - job_name: "node"
+#     static_configs:
+#       - targets:
+{# Loop over homelab_services to generate target list dynamically #}
+#         {% for service in homelab_services %}
+#           - "{{ service.ip }}:9100"
+#         {% endfor %}

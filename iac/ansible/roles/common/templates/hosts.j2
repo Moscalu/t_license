@@ -1,0 +1,24 @@
+{# roles/common/templates/hosts.j2                                             #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+{# Jinja2 template — rendered by Ansible and written to /etc/hosts             #}
+{# on each container.                                                          #}
+{#                                                                             #}
+{# HOW JINJA2 TEMPLATES WORK:                                                  #}
+{#   {{ variable }}                → replaced with the variable's value        #}
+{#   {% for item in list %}        → start a loop                              #}
+{#     {{ item.field }}            → access a field on the current item        #}
+{#   {% endfor %}                  → end the loop                              #}
+{#   {# this is a comment #}       → not written to the output file            #}
+{#                                                                             #}
+{# The variable "homelab_services" is a list defined in group_vars/all.yml.   #}
+{# Each item has two fields: "ip" and "hostname".                              #}
+{# ─────────────────────────────────────────────────────────────────────────── #}
+
+# Standard loopback — do not remove
+127.0.0.1   localhost
+::1         localhost ip6-localhost ip6-loopback
+
+# Homelab services — managed by Ansible (roles/common)
+{% for service in homelab_services %}
+{{ service.ip }}   {{ service.hostname }}
+{% endfor %}

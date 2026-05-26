@@ -1,0 +1,9 @@
+# roles/gitlab/handlers/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Triggered when gitlab.rb or docker-compose.yml changes.
+# Runs "gitlab-ctl reconfigure" inside the running GitLab container.
+
+---
+# - name: Reconfigure GitLab
+#   ansible.builtin.command: docker exec gitlab gitlab-ctl reconfigure
+#   changed_when: true

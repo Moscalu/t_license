@@ -1,9 +1,22 @@
+terraform {
+  required_providers {
+    proxmox = {
+      source = "bpg/proxmox"
+    }
+  }
+}
+
 resource "proxmox_virtual_environment_container" "this" {
-  vm_id     = var.vm_id
-  node_name = var.node_name
+  vm_id        = var.vm_id
+  node_name    = var.node_name
+  unprivileged = var.unprivileged
 
   initialization {
     hostname = var.hostname
+
+    dns {
+      servers = var.dns_servers
+    }
 
     ip_config {
       ipv4 {
@@ -13,7 +26,15 @@ resource "proxmox_virtual_environment_container" "this" {
     }
 
     user_account {
-      keys = [file(var.ssh_public_key)]
+      keys = [var.ssh_public_key]
+    }
+  }
+
+  dynamic "features" {
+    for_each = var.nesting || var.keyctl ? [1] : []
+    content {
+      nesting = var.nesting
+      keyctl  = var.keyctl
     }
   }
 
@@ -26,17 +47,21 @@ resource "proxmox_virtual_environment_container" "this" {
   }
 
   disk {
-    datastore_id  = "local-lvm"
-    size          = var.disk_size
+    datastore_id = var.disk_datastore
+    size         = var.disk_size
   }
 
   network_interface {
-    name    = "eth0"
-    bridge  = var.network_bridge
+    name   = "eth0"
+    bridge = var.network_bridge
   }
 
   operating_system {
-    template_file_id  = "local:vztmpl/ubuntu-24.04-standard_24.04-2_amd64.tar.zst"
-    type              = ubuntu
+    template_file_id = var.template_file_id
+    type             = "ubuntu"
+  }
+
+  wait_for_ip {
+    ipv4 = true
   }
 }

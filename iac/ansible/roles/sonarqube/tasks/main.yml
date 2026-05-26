@@ -1,0 +1,52 @@
+# roles/sonarqube/tasks/main.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy SonarQube using Docker Compose.
+# Requires: docker role must run first.
+#
+# ⚠️  CRITICAL — Before running this role:
+#   SonarQube bundles Elasticsearch which requires vm.max_map_count=262144
+#   at the kernel level. For LXC containers this must be set on the
+#   PROXMOX HOST (not inside the container). Run once on your Proxmox node:
+#
+#     echo "vm.max_map_count=262144" >> /etc/sysctl.conf && sysctl -p
+#
+#   Without this SonarQube will fail with:
+#   "max virtual memory areas vm.max_map_count [65530] is too low"
+
+---
+
+# ─── 1. CREATE DIRECTORY STRUCTURE ────────────────────────────────────────────
+# - name: Create SonarQube directories
+#   ansible.builtin.file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: "0755"
+#   loop:
+#     - /opt/sonarqube
+#     - /opt/sonarqube/data
+#     - /opt/sonarqube/logs
+#     - /opt/sonarqube/extensions
+
+
+# ─── 2. COPY COMPOSE FILE ─────────────────────────────────────────────────────
+# - name: Copy docker-compose.yml
+#   ansible.builtin.copy:
+#     src: "{{ playbook_dir }}/../../../security/sonarqube/docker-compose.yml"
+#     dest: /opt/sonarqube/docker-compose.yml
+#   notify: Restart SonarQube
+
+
+# ─── 3. START SONARQUBE ───────────────────────────────────────────────────────
+# - name: Start SonarQube via Docker Compose
+#   community.docker.docker_compose_v2:
+#     project_src: /opt/sonarqube
+#     state: present
+
+
+# ─── 4. WAIT FOR SONARQUBE ────────────────────────────────────────────────────
+# SonarQube takes ~2 minutes to start (Elasticsearch initialization).
+# - name: Wait for SonarQube web interface
+#   ansible.builtin.wait_for:
+#     host: localhost
+#     port: 9000
+#     timeout: 180

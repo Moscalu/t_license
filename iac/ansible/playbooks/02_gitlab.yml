@@ -1,0 +1,25 @@
+# playbooks/02_gitlab.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Deploy GitLab CE using Docker Compose.
+# Run AFTER 01_traefik.yml — Traefik must be up to route gitlab.homelab.local.
+#
+# What it does:
+#   1. Installs Docker CE
+#   2. Creates /opt/gitlab directory structure
+#   3. Copies compose file and gitlab.rb config
+#   4. Starts GitLab via docker compose
+#   5. Waits for GitLab to become available on port 443
+#
+# ⚠️  GitLab takes 3-5 minutes to initialize on first run — the wait_for
+#     task in the role will hold until it's ready before exiting.
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/02_gitlab.yml
+
+- name: Deploy GitLab CE
+  hosts: gitlab
+  become: true
+
+  roles:
+    - docker
+    - gitlab
